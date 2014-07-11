@@ -8,216 +8,157 @@ class TemplateTest < Test::Unit::TestCase
 
   def setup
    config = Dotenv.load
-   @sendgrid_username = ENV["SENDGRID_USERNAME"]
-   @sendgrid_password = ENV["SENDGRID_PASSWORD"]
+   @username = ENV["SENDGRID_USERNAME"]
+   @password = ENV["SENDGRID_PASSWORD"]
   end
 
   def test_initialize
-    templates = SendgridTemplateEngine::Templates.new()
+    templates = SendgridTemplateEngine::Templates.new("user", "pass")
     assert_equal(SendgridTemplateEngine::Templates, templates.class)
   end
 
-  def test_get_invalid_auth
-    templates = SendgridTemplateEngine::Templates.new()
-    assert_raise(RestClient::Unauthorized) {
-      response = templates.get_all("user", "pass")
+  def test_bad_username
+    assert_raise(ArgumentError) {
+      templates = SendgridTemplateEngine::Templates.new(nil, nil)
     }
   end
 
-  def test_get_nil
-    templates = SendgridTemplateEngine::Templates.new()
-    resp_temps = templates.get_all(@sendgrid_username, @sendgrid_password)
+  def test_invalid_auth
+    templates = SendgridTemplateEngine::Templates.new("user", "pass")
+    assert_raise(RestClient::Unauthorized) {
+      response = templates.get_all()
+    }
+  end
+
+  def test_get_all
+    templates = SendgridTemplateEngine::Templates.new(@username, @password)
+    resp_temps = templates.get_all()
     assert_equal(true, resp_temps.length >= 0)
   end
 
+  def test_get_template_id_nil
+    templates = SendgridTemplateEngine::Templates.new(@username, @password, )
+    assert_raise(ArgumentError) {
+      response = templates.get(nil)
+    }
+  end
+
   def test_get_template_id_not_exist
-    templates = SendgridTemplateEngine::Templates.new()
+    templates = SendgridTemplateEngine::Templates.new(@username, @password, )
     assert_raise(RestClient::ResourceNotFound) {
-      response = templates.get(@sendgrid_username, @sendgrid_password, "not_exist")
+      response = templates.get("not_exist")
     }
   end
 
   def test_get_template_id_exist
-    templates = SendgridTemplateEngine::Templates.new()
-    resp_temps_all = templates.get_all(@sendgrid_username, @sendgrid_password)
-    expect_id = resp_temps_all[0].id
-    expect_name = resp_temps_all[0].name
-    expect_versions = resp_temps_all[0].versions
-
-    if resp_temps_all.length > 0 then
-      resp_temp = templates.get(@sendgrid_username, @sendgrid_password, expect_id)
-      assert_equal(expect_id, resp_temp.id)
-      assert_equal(expect_name, resp_temp.name)
-      assert_equal(expect_versions, resp_temp.versions)
+    templates = SendgridTemplateEngine::Templates.new(@username, @password)
+    resp_temps_all = templates.get_all()
+    if resp_temps_all.length == 0 then
+      templates.post("new_template")
     end
+    resp_temps_all = templates.get_all()
+    assert_equal(true, resp_temps_all.length > 0)
+    expect = resp_temps_all[0]
+    actual = templates.get(expect.id)
+    assert_equal(expect.id, actual.id)
+    assert_equal(expect.name, actual.name)
+    assert_equal(expect.versions, actual.versions)
+  end
 
+  def test_post_name_nil
+    templates = SendgridTemplateEngine::Templates.new(@username, @password)
+    assert_raise(ArgumentError) {
+      resp = templates.post(nil)
+    }
   end
 
   def test_post_bad_request
-    templates = SendgridTemplateEngine::Templates.new()
+    templates = SendgridTemplateEngine::Templates.new(@username, @password)
     expect = ""
     assert_raise(RestClient::BadRequest) {
-      resp = templates.post(@sendgrid_username, @sendgrid_password, expect)
+      resp = templates.post(expect)
     }
   end
 
   def test_post
-    templates = SendgridTemplateEngine::Templates.new()
-    expect = "testtemplate8"
-    resp = templates.post(@sendgrid_username, @sendgrid_password, expect)
-    assert_equal(true, resp.id.length > 0)
-    assert_equal(expect, resp.name)
-    assert_equal(true, resp.versions.length == 0)
+    #-- prepare test
+    templates = SendgridTemplateEngine::Templates.new(@username, @password)
+    resp_temps_all = templates.get_all()
+    new_name = "new_template"
+    if resp_temps_all.length > 0 then
+      temp = templates.get(resp_temps_all[0].id).name
+      new_name = temp + "1"
+    end
+    #-- prepare test
+    actual = templates.post(new_name)
+    assert_equal(true, actual.id.length > 0)
+    assert_equal(new_name, actual.name)
+    assert_equal(true, actual.versions.length == 0)
+  end
+
+  def test_patch_id_nil
+    templates = SendgridTemplateEngine::Templates.new(@username, @password)
+    new_name = "new_name"
+    assert_raise(ArgumentError) {
+      actual = templates.patch(nil, new_name)
+    }
+  end
+
+  def test_patch_name_nil
+    templates = SendgridTemplateEngine::Templates.new(@username, @password)
+    id = "some_id"
+    assert_raise(ArgumentError) {
+      actual = templates.patch(id, nil)
+    }
   end
 
   def test_patch
-    templates = SendgridTemplateEngine::Templates.new()
-    resp_temps_all = templates.get_all(@sendgrid_username, @sendgrid_password)
-    expect_id = resp_temps_all[0].id
-    expect_versions = resp_temps_all[0].versions
-    expect_name = "newname"
-    resp_temp = templates.patch(@sendgrid_username, @sendgrid_password, expect_id, expect_name)
-    assert_equal(expect_id, resp_temp.id)
-    assert_equal(expect_name, resp_temp.name)
-    assert_equal(expect_versions, resp_temp.versions)
+    #-- prepare test
+    templates = SendgridTemplateEngine::Templates.new(@username, @password)
+    resp_temps_all = templates.get_all()
+    new_name = "new_template"
+    if resp_temps_all.length > 0 then
+      temp = templates.get(resp_temps_all[0].id).name
+      new_name = temp + "1"
+    end
+    expected = templates.post(new_name)
+    #-- prepare test
+    new_name += "2"
+    actual = templates.patch(expected.id, new_name)
+    assert_equal(expected.id, actual.id)
+    assert_equal(new_name, actual.name)
+    assert_equal(expected.versions, actual.versions)
+  end
+
+  def test_delete_id_nil
+    templates = SendgridTemplateEngine::Templates.new(@username, @password)
+    assert_raise(ArgumentError) {
+      templates.delete(nil)
+    }
+  end
+
+  def test_delete_not_exist
+    templates = SendgridTemplateEngine::Templates.new(@username, @password)
+    assert_raise(RestClient::ResourceNotFound) {
+      templates.delete("not_exist")
+    }
   end
 
   def test_delete
-    templates = SendgridTemplateEngine::Templates.new()
-    resp_temps_all = templates.get_all(@sendgrid_username, @sendgrid_password)
-    expect_id = resp_temps_all[0].id
-    expect_versions = resp_temps_all[0].versions
-
-    templates.delete(@sendgrid_username, @sendgrid_password, expect_id)
+    #-- prepare test
+    templates = SendgridTemplateEngine::Templates.new(@username, @password)
+    resp_temps_all = templates.get_all()
+    new_name = "new_template"
+    if resp_temps_all.length > 0 then
+      temp = templates.get(resp_temps_all[0].id).name
+      new_name = temp + "1"
+    end
+    expected = templates.post(new_name)
+    #-- prepare test
+    templates.delete(expected.id)
     assert_raise(RestClient::ResourceNotFound) {
-      resp_temp = templates.get(@sendgrid_username, @sendgrid_password, expect_id)
+      templates.get(expected.id)
     }
-
   end
-
-#   def test_get_template_id
-#     templates = SendgridTemplateEngine::Templates.new()
-#     response = templates.get(@sendgrid_username, @sendgrid_password)
-#     res = JSON.parse(response.body)
-#     puts res["templates"]
-#     puts res["templates"][0]
-#     puts res["templates"][0]["id"]
-#
-# #    puts response
-# #    response = templates.get(@sendgrid_username, @sendgrid_password)
-#
-#   end
-
-  # def test_send_bad_credential
-  #   email = SendgridRuby::Email.new
-  #   email.set_from('bar@foo.com').
-  #     set_subject('test_send_bad_credential subject').
-  #     set_text('foobar text').
-  #     add_to('foo@bar.com')
-  #
-  #   sendgrid = SendgridRuby::Sendgrid.new("user", "pass")
-  #   sendgrid.debug_output = true
-  #   assert_raise RestClient::BadRequest do
-  #     sendgrid.send(email)
-  #   end
-  # end
-  #
-  # def test_send
-  #   email = SendgridRuby::Email.new
-  #   email.set_from(@from).
-  #     set_subject('test_send subject').
-  #     set_text('foobar text').
-  #     add_to(@to)
-  #
-  #   sendgrid = SendgridRuby::Sendgrid.new("user", "pass")
-  #   sendgrid.debug_output = true
-  #   assert_raise RestClient::BadRequest do
-  #     sendgrid.send(email)
-  #   end
-  # end
-  #
-  # def test_send_with_attachment_text
-  #   email = SendgridRuby::Email.new
-  #   email.set_from(@from).
-  #     set_subject('test_send_with_attachment_text subject').
-  #     set_text('foobar text').
-  #     add_to(@to).
-  #     add_attachment('./test/file1.txt')
-  #
-  #   sendgrid = SendgridRuby::Sendgrid.new("user", "pass")
-  #   sendgrid.debug_output = true
-  #   assert_raise RestClient::BadRequest do
-  #     sendgrid.send(email)
-  #   end
-  # end
-  #
-  # def test_send_with_attachment_binary
-  #   email = SendgridRuby::Email.new
-  #   email.set_from(@from).
-  #     set_subject('test_send_with_attachment subject').
-  #     set_text('foobar text').
-  #     add_to(@to).
-  #     add_attachment('./test/gif.gif')
-  #
-  #   sendgrid = SendgridRuby::Sendgrid.new("user", "pass")
-  #   sendgrid.debug_output = true
-  #   assert_raise RestClient::BadRequest do
-  #     sendgrid.send(email)
-  #   end
-  # end
-  #
-  # def test_send_with_attachment_missing_extension
-  #   email = SendgridRuby::Email.new
-  #   email.set_from(@from).
-  #     set_subject('test_send_with_attachment_missing_extension subject').
-  #     set_text('foobar text').
-  #     add_to(@to).
-  #     add_attachment('./test/gif')
-  #
-  #   sendgrid = SendgridRuby::Sendgrid.new("user", "pass")
-  #   sendgrid.debug_output = true
-  #   assert_raise RestClient::BadRequest do
-  #     sendgrid.send(email)
-  #   end
-  # end
-  #
-  # def test_send_with_ssl_option_false
-  #   email = SendgridRuby::Email.new
-  #   email.set_from(@from).
-  #     set_subject('test_send_with_ssl_option_false subject').
-  #     set_text('foobar text').
-  #     add_to(@to)
-  #
-  #   sendgrid = SendgridRuby::Sendgrid.new("user", "pass", {"turn_off_ssl_verification" => true})
-  #   sendgrid.debug_output = true
-  #   assert_raise RestClient::BadRequest do
-  #     sendgrid.send(email)
-  #   end
-  # end
-  #
-  # def test_send_unicode
-  #   email = SendgridRuby::Email.new
-  #   email.add_to(@to)
-  #   .set_from(@from)
-  #   .set_from_name("送信者名")
-  #   .set_subject("[sendgrid-ruby-example] フクロウのお名前はfullnameさん")
-  #   .set_text("familyname さんは何をしていますか？\r\n 彼はplaceにいます。")
-  #   .set_html("<strong> familyname さんは何をしていますか？</strong><br />彼はplaceにいます。")
-  #   .add_substitution("fullname", ["田中 太郎", "佐藤 次郎", "鈴木 三郎"])
-  #   .add_substitution("familyname", ["田中", "佐藤", "鈴木"])
-  #   .add_substitution("place", ["office", "home", "office"])
-  #   .add_section('office', '中野')
-  #   .add_section('home', '目黒')
-  #   .add_category('カテゴリ1')
-  #   .add_header('X-Sent-Using', 'SendgridRuby-API')
-  #   .add_attachment('./test/gif.gif', 'owl.gif')
-  #
-  #   sendgrid = SendgridRuby::Sendgrid.new("user", "pass")
-  #   sendgrid.debug_output = true
-  #   assert_raise RestClient::BadRequest do
-  #     sendgrid.send(email)
-  #   end
-  #
-  # end
 
 end

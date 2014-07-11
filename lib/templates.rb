@@ -15,10 +15,11 @@ module SendgridTemplateEngine
       raise ArgumentError.new("password should not be nil") if password == nil
       @username = username
       @password = password
+      @url_base = "https://#{@username}:#{@password}@api.sendgrid.com/v3"
     end
 
     def get_all()
-      endpoint = "https://#{@username}:#{@password}@api.sendgrid.com/v3/templates"
+      endpoint = "#{@url_base}/templates"
       body = RestClient.get(endpoint).body
       response = JSON.parse(body)
       temps = []
@@ -31,14 +32,14 @@ module SendgridTemplateEngine
 
     def get(template_id)
       raise ArgumentError.new("template_id should not be nil") if template_id == nil
-      endpoint = "https://#{@username}:#{@password}@api.sendgrid.com/v3/templates/#{template_id}"
+      endpoint = "#{@url_base}/templates/#{template_id}"
       body = RestClient.get(endpoint).body
       Template.create(JSON.parse(body))
     end
 
     def post(name)
       raise ArgumentError.new("name should not be nil") if name == nil
-      endpoint = "https://#{@username}:#{@password}@api.sendgrid.com/v3/templates"
+      endpoint = "#{@url_base}/templates"
       params = Hash.new
       params['name'] = name
       body = RestClient.post(endpoint, params.to_json, :content_type => :json).body
@@ -48,7 +49,7 @@ module SendgridTemplateEngine
     def patch(template_id, name)
       raise ArgumentError.new("template_id should not be nil") if template_id == nil
       raise ArgumentError.new("name should not be nil") if name == nil
-      endpoint = "https://#{@username}:#{@password}@api.sendgrid.com/v3/templates/#{template_id}"
+      endpoint = "#{@url_base}/templates/#{template_id}"
       params = Hash.new
       params['name'] = name
       body = RestClient.patch(endpoint, params.to_json, :content_type => :json).body
@@ -57,7 +58,7 @@ module SendgridTemplateEngine
 
     def delete(template_id)
       raise ArgumentError.new("template_id should not be nil") if template_id == nil
-      endpoint = "https://#{@username}:#{@password}@api.sendgrid.com/v3/templates/#{template_id}"
+      endpoint = "#{@url_base}/templates/#{template_id}"
       RestClient.delete(endpoint)
     end
 
@@ -78,5 +79,6 @@ module SendgridTemplateEngine
       }
       obj
     end
+
   end
 end

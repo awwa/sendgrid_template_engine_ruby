@@ -4,7 +4,7 @@ require "dotenv"
 require "test/unit"
 require "./lib/sendgrid_template_engine/version"
 
-class TemplateTest < Test::Unit::TestCase
+class TemplatesTest < Test::Unit::TestCase
 
   def setup
    config = Dotenv.load

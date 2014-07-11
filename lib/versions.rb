@@ -9,33 +9,63 @@ module SendgridTemplateEngine
 
   class Versions
 
-    def get(username, password, template_id, version_id)
-      endpoint =
-        "https://#{username}:#{password}@api.sendgrid.com/v3/templates/#{template_id}/versions/#{version_id}"
-      response = JSON.parse(RestClient.get(endpoint).body)
-      puts response["errors"]
-      response
+    def initialize(username, password)
+      raise ArgumentError.new("username should not be nil") if username == nil
+      raise ArgumentError.new("password should not be nil") if password == nil
+      @username = username
+      @password = password
+      @url_base = "https://#{@username}:#{@password}@api.sendgrid.com/v3"
     end
 
+    def get(template_id, version_id)
+      raise ArgumentError.new("template_id should not be nil") if template_id == nil
+      raise ArgumentError.new("version_id should not be nil") if version_id == nil
+      endpoint = "#{@url_base}/templates/#{template_id}/versions/#{version_id}"
+      body = RestClient.get(endpoint).body
+      Version.create(JSON.parse(body))
+    end
 
+    def post(template_id, version)
+      # TODO version instance check
+      endpoint = "#{@url_base}/templates/#{template_id}/versions"
+      body = RestClient.post(endpoint, version.to_json, :content_type => :json).body
+      Version.create(JSON.parse(body))
+    end
+
+    def post_activate(template_id, version_id)
+      endpoint = "#{@url_base}/templates/#{template_id}/versions/#{version_id}/activate"
+      body = RestClient.post(endpoint, :content_type => :json).body
+      Version.create(JSON.parse(body))
+    end
+
+    def patch(template_id, version_id, version)
+      endpoint = "#{@url_base}/templates/#{template_id}/versions/#{version_id}"
+      body = RestClient.patch(endpoint, version, :content_type => :json).body
+      Version.create(JSON.parse(body))
+    end
+
+    def delete(template_id, version_id)
+      endpoint = "#{@url_base}/templates/#{template_id}/versions/#{version_id}"
+      RestClient.delete(endpoint)
+    end
 
   end
 
   class Version
 
-    attr_reader :id, :template_id, :active, :name, :html_content, :plain_content, :subject, :updated_at
+    attr_accessor :id, :template_id, :active, :name, :html_content, :plain_content, :subject, :updated_at
 
-    def self.new_create(value)
-      #value = JSON.parse(json)
-      @id = value["id"]
-      @template_id = value["template_id"]
-      @active = value["active"]
-      @name = value["name"]
-      @html_content = value["html_content"]
-      @plain_content = value["plain_content"]
-      @subject = value["subject"]
-      @updated_at = value["updated_at"]
-      self
+    def self.create(value)
+      obj = Version.new
+      obj.id = value["id"]
+      obj.template_id = value["template_id"]
+      obj.active = value["active"]
+      obj.name = value["name"]
+      obj.html_content = value["html_content"]
+      obj.plain_content = value["plain_content"]
+      obj.subject = value["subject"]
+      obj.updated_at = value["updated_at"]
+      obj
     end
 
     def set_name(name)

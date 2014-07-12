@@ -10,6 +10,7 @@ class TemplatesTest < Test::Unit::TestCase
    config = Dotenv.load
    @username = ENV["SENDGRID_USERNAME"]
    @password = ENV["SENDGRID_PASSWORD"]
+#   delete_all
   end
 
   def test_initialize
@@ -52,17 +53,15 @@ class TemplatesTest < Test::Unit::TestCase
 
   def test_get_template_id_exist
     templates = SendgridTemplateEngine::Templates.new(@username, @password)
-    resp_temps_all = templates.get_all()
-    if resp_temps_all.length == 0 then
-      templates.post("new_template")
-    end
-    resp_temps_all = templates.get_all()
-    assert_equal(true, resp_temps_all.length > 0)
-    expect = resp_temps_all[0]
-    actual = templates.get(expect.id)
-    assert_equal(expect.id, actual.id)
-    assert_equal(expect.name, actual.name)
-    assert_equal(expect.versions, actual.versions)
+    # Add template
+    new_template = templates.post("new_template")
+    # Get template
+    actual = templates.get(new_template.id)
+    assert_equal(new_template.id, actual.id)
+    assert_equal(new_template.name, actual.name)
+    assert_equal(new_template.versions, actual.versions)
+    # Delete template
+    templates.delete(actual.id)
   end
 
   def test_post_name_nil
@@ -78,22 +77,6 @@ class TemplatesTest < Test::Unit::TestCase
     assert_raise(RestClient::BadRequest) {
       resp = templates.post(expect)
     }
-  end
-
-  def test_post
-    #-- prepare test
-    templates = SendgridTemplateEngine::Templates.new(@username, @password)
-    resp_temps_all = templates.get_all()
-    new_name = "new_template"
-    if resp_temps_all.length > 0 then
-      temp = templates.get(resp_temps_all[0].id).name
-      new_name = temp + "1"
-    end
-    #-- prepare test
-    actual = templates.post(new_name)
-    assert_equal(true, actual.id.length > 0)
-    assert_equal(new_name, actual.name)
-    assert_equal(true, actual.versions.length == 0)
   end
 
   def test_patch_id_nil
@@ -113,21 +96,18 @@ class TemplatesTest < Test::Unit::TestCase
   end
 
   def test_patch
-    #-- prepare test
     templates = SendgridTemplateEngine::Templates.new(@username, @password)
-    resp_temps_all = templates.get_all()
-    new_name = "new_template"
-    if resp_temps_all.length > 0 then
-      temp = templates.get(resp_temps_all[0].id).name
-      new_name = temp + "1"
-    end
-    expected = templates.post(new_name)
-    #-- prepare test
-    new_name += "2"
-    actual = templates.patch(expected.id, new_name)
-    assert_equal(expected.id, actual.id)
-    assert_equal(new_name, actual.name)
-    assert_equal(expected.versions, actual.versions)
+    # Add template
+    new_template = templates.post("new_template")
+    # Edit template
+    templates.patch(new_template.id, "edit_template")
+    # Get template
+    actual = templates.get(new_template.id)
+    assert_equal(new_template.id, actual.id)
+    assert_equal("edit_template", actual.name)
+    assert_equal(new_template.versions, actual.versions)
+    # Delete template
+    templates.delete(actual.id)
   end
 
   def test_delete_id_nil
@@ -147,17 +127,12 @@ class TemplatesTest < Test::Unit::TestCase
   def test_delete
     #-- prepare test
     templates = SendgridTemplateEngine::Templates.new(@username, @password)
-    resp_temps_all = templates.get_all()
-    new_name = "new_template"
-    if resp_temps_all.length > 0 then
-      temp = templates.get(resp_temps_all[0].id).name
-      new_name = temp + "1"
-    end
-    expected = templates.post(new_name)
-    #-- prepare test
-    templates.delete(expected.id)
+    # Add template
+    new_template = templates.post("new_template")
+    # Delete template
+    templates.delete(new_template.id)
     assert_raise(RestClient::ResourceNotFound) {
-      templates.get(expected.id)
+      templates.get(new_template.id)
     }
   end
 

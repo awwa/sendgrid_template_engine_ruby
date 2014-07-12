@@ -13,12 +13,10 @@ module SendgridTemplateEngine
     def initialize(username, password)
       raise ArgumentError.new("username should not be nil") if username == nil
       raise ArgumentError.new("password should not be nil") if password == nil
-      @username = username
-      @password = password
-      @url_base = "https://#{@username}:#{@password}@api.sendgrid.com/v3"
+      @url_base = "https://#{username}:#{password}@api.sendgrid.com/v3"
     end
 
-    def get_all()
+    def get_all
       endpoint = "#{@url_base}/templates"
       body = RestClient.get(endpoint).body
       response = JSON.parse(body)
@@ -74,7 +72,7 @@ module SendgridTemplateEngine
       obj.name = value["name"]
       obj.versions = []
       value["versions"].each{|version|
-        ver = Version.new_create(version)
+        ver = Version.create(version)
         obj.versions.push(ver)
       }
       obj

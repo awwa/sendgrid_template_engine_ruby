@@ -10,7 +10,6 @@ class TemplatesTest < Test::Unit::TestCase
    config = Dotenv.load
    @username = ENV["SENDGRID_USERNAME"]
    @password = ENV["SENDGRID_PASSWORD"]
-#   delete_all
   end
 
   def test_initialize
@@ -38,14 +37,14 @@ class TemplatesTest < Test::Unit::TestCase
   end
 
   def test_get_template_id_nil
-    templates = SendgridTemplateEngine::Templates.new(@username, @password, )
+    templates = SendgridTemplateEngine::Templates.new(@username, @password)
     assert_raise(ArgumentError) {
       response = templates.get(nil)
     }
   end
 
   def test_get_template_id_not_exist
-    templates = SendgridTemplateEngine::Templates.new(@username, @password, )
+    templates = SendgridTemplateEngine::Templates.new(@username, @password)
     assert_raise(RestClient::ResourceNotFound) {
       response = templates.get("not_exist")
     }

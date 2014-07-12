@@ -4,16 +4,11 @@ $:.unshift File.dirname(__FILE__)
 require "sendgrid_template_engine/version"
 require "rest-client"
 require "uri"
+require "resources"
 
 module SendgridTemplateEngine
 
-  class Versions
-
-    def initialize(username, password)
-      raise ArgumentError.new("username should not be nil") if username == nil
-      raise ArgumentError.new("password should not be nil") if password == nil
-      @url_base = "https://#{username}:#{password}@api.sendgrid.com/v3"
-    end
+  class Versions < Resources
 
     def get(template_id, version_id)
       raise ArgumentError.new("template_id should not be nil") if template_id == nil
@@ -73,20 +68,6 @@ module SendgridTemplateEngine
       obj.updated_at = value["updated_at"]
       obj
     end
-
-    # def to_hash
-    #   hash = {
-    #     "id" => @id,
-    #     "template_id" => @template_id,
-    #     "active" => @active,
-    #     "name" => @name,
-    #     "html_content" => @html_content,
-    #     "plain_content" => @plain_content,
-    #     "subject" => @subject,
-    #     "updated_at" => @updated_at
-    #   }
-    #   hash
-    # end
 
     def to_hash
       hash = {

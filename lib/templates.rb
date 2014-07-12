@@ -4,17 +4,12 @@ $:.unshift File.dirname(__FILE__)
 require "sendgrid_template_engine/version"
 require "rest-client"
 require "uri"
+require "resources"
 require "versions"
 
 module SendgridTemplateEngine
 
-  class Templates
-
-    def initialize(username, password)
-      raise ArgumentError.new("username should not be nil") if username == nil
-      raise ArgumentError.new("password should not be nil") if password == nil
-      @url_base = "https://#{username}:#{password}@api.sendgrid.com/v3"
-    end
+  class Templates < Resources
 
     def get_all
       endpoint = "#{@url_base}/templates"
@@ -39,7 +34,7 @@ module SendgridTemplateEngine
       raise ArgumentError.new("name should not be nil") if name == nil
       endpoint = "#{@url_base}/templates"
       params = Hash.new
-      params['name'] = name
+      params["name"] = name
       body = RestClient.post(endpoint, params.to_json, :content_type => :json).body
       Template.create(JSON.parse(body))
     end
@@ -49,7 +44,7 @@ module SendgridTemplateEngine
       raise ArgumentError.new("name should not be nil") if name == nil
       endpoint = "#{@url_base}/templates/#{template_id}"
       params = Hash.new
-      params['name'] = name
+      params["name"] = name
       body = RestClient.patch(endpoint, params.to_json, :content_type => :json).body
       Template.create(JSON.parse(body))
     end

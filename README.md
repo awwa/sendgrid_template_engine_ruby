@@ -1,6 +1,7 @@
 # SendgridTemplateEngine
 
-TODO: Write a gem description
+This gem allows you to quickly and easily access to SendGrid Template Engine using Ruby.
+See [api reference](https://sendgrid.com/docs/API_Reference/Template_Engine_API/index.html) for more detail
 
 ## Installation
 

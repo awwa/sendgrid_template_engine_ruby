@@ -100,6 +100,42 @@ class VersionsTest < Test::Unit::TestCase
   #     puts ex.inspect
   #   end
   # end
+
+  def test_post_activate
+    begin
+      templates = SendgridTemplateEngine::Templates.new(@username, @password)
+      # Add template
+      new_template = templates.post("new_template")
+      # Add version
+      new_version = SendgridTemplateEngine::Version.new()
+      new_version.set_name("new_version")
+      new_version.set_subject("<%subject%>")
+      new_version.set_html_content("<%body%>")
+      new_version.set_plain_content("<%body%>")
+      new_version.set_active(0)
+      versions = SendgridTemplateEngine::Versions.new(@username, @password)
+      new_version = versions.post(new_template.id, new_version)
+      # Get version
+      actual = versions.get(new_template.id, new_version.id)
+      assert_equal(new_version.active, actual.active)
+      # Activate version
+      versions.post_activate(new_template.id, new_version.id)
+      # Get version
+      actual = versions.get(new_template.id, new_version.id)
+      assert_equal(1, actual.active)
+      # Delete version
+      versions.delete(actual.template_id, actual.id)
+      # Delete template
+      templates.delete(actual.template_id)
+    rescue => ex
+      puts ex.inspect
+    end
+  end
+
+
+
+
+
   #
   # def test_post_name_nil
   #   templates = SendgridTemplateEngine::Templates.new(@username, @password)

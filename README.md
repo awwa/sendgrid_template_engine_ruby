@@ -21,7 +21,112 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+### Templates
+```Ruby
+#
+# Retrieve all templates
+#
+templates = SendgridTemplateEngine::Templates.new("user", "pass")
+tmps = templates.get_all()
+tmps.each {|tmp|
+  puts tmp.id
+  puts tmp.name
+  tmp.versions.each {|ver|
+    puts ver.id
+    puts ver.template_id
+    puts ver.active
+    puts ver.name
+    puts ver.updated_at
+  }
+}
+
+#
+# Retrieve a single template
+#
+templates = SendgridTemplateEngine::Templates.new("user", "pass")
+tmp = templates.get(template_id)
+puts tmp.id
+puts tmp.name
+tmp.versions.each {|ver|
+  puts ver.id
+  puts ver.template_id
+  puts ver.active
+  puts ver.name
+  puts ver.updated_at
+}
+
+#
+# Create a template
+#
+templates = SendgridTemplateEngine::Templates.new(@username, @password)
+tmp = templates.post("new_template_name")
+
+#
+# Edit a template
+#
+templates = SendgridTemplateEngine::Templates.new(@username, @password)
+tmp = templates.patch("edit_template_name")
+
+#
+# Delete a template
+#
+templates = SendgridTemplateEngine::Templates.new(@username, @password)
+tmp = templates.delete(template_id)
+```
+
+### Versions
+```Ruby
+#
+# Retrieve a specific version of template
+#
+versions = SendgridTemplateEngine::Versions.new(@username, @password)
+ver = versions.get(template_id, version_id)
+puts ver.id
+puts ver.template_id
+puts ver.active
+puts ver.name
+puts ver.html_content
+puts ver.plain_content
+puts ver.subject
+puts ver.update_at
+
+#
+# Create a new version
+#
+new_version = SendgridTemplateEngine::Version.new()
+new_version.set_name("new_version")
+new_version.set_subject("<%subject%>")
+new_version.set_html_content("<%body%>")
+new_version.set_plain_content("<%body%>")
+new_version.set_active(1)
+versions = SendgridTemplateEngine::Versions.new(@username, @password)
+ver = versions.post(template_id, new_version)
+
+#
+# Activate a version
+#
+versions = SendgridTemplateEngine::Versions.new(@username, @password)
+ver = versions.post_activate(template_id, version_id)
+
+#
+# Edit a version
+#
+edit_version = SendgridTemplateEngine::Version.new()
+edit_version.set_name("edit_version")
+edit_version.set_subject("edit<%subject%>edit")
+edit_version.set_html_content("edit<%body%>edit")
+edit_version.set_plain_content("edit<%body%>edit")
+edit_version.set_active(0)
+versions = SendgridTemplateEngine::Versions.new(@username, @password)
+ver = versions.patch(template_id, version_id, edit_version)
+
+#
+# Delete a version
+#
+versions = SendgridTemplateEngine::Versions.new(@username, @password)
+versions.delete(template_id, version_id)
+
+```
 
 ## Contributing
 
@@ -30,4 +135,3 @@ TODO: Write usage instructions here
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create a new Pull Request
-=======

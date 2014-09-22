@@ -3,7 +3,6 @@ $:.unshift File.dirname(__FILE__)
 
 require "sendgrid_template_engine/version"
 require "rest-client"
-require "uri"
 require "resources"
 require "versions"
 
@@ -13,7 +12,8 @@ module SendgridTemplateEngine
 
     def get_all
       endpoint = "#{@url_base}/templates"
-      body = RestClient.get(endpoint).body
+      resource = RestClient::Resource.new(endpoint, @username, @password)
+      body = resource.get.body
       response = JSON.parse(body)
       temps = []
       response["templates"].each{|template|
@@ -26,16 +26,18 @@ module SendgridTemplateEngine
     def get(template_id)
       raise ArgumentError.new("template_id should not be nil") if template_id == nil
       endpoint = "#{@url_base}/templates/#{template_id}"
-      body = RestClient.get(endpoint).body
+      resource = RestClient::Resource.new(endpoint, @username, @password)
+      body = resource.get.body
       Template.create(JSON.parse(body))
     end
 
     def post(name)
       raise ArgumentError.new("name should not be nil") if name == nil
       endpoint = "#{@url_base}/templates"
+      resource = RestClient::Resource.new(endpoint, @username, @password)
       params = Hash.new
       params["name"] = name
-      body = RestClient.post(endpoint, params.to_json, :content_type => :json).body
+      body = resource.post(params.to_json, :content_type => :json).body
       Template.create(JSON.parse(body))
     end
 
@@ -43,16 +45,18 @@ module SendgridTemplateEngine
       raise ArgumentError.new("template_id should not be nil") if template_id == nil
       raise ArgumentError.new("name should not be nil") if name == nil
       endpoint = "#{@url_base}/templates/#{template_id}"
+      resource = RestClient::Resource.new(endpoint, @username, @password)
       params = Hash.new
       params["name"] = name
-      body = RestClient.patch(endpoint, params.to_json, :content_type => :json).body
+      body = resource.patch(params.to_json, :content_type => :json).body
       Template.create(JSON.parse(body))
     end
 
     def delete(template_id)
       raise ArgumentError.new("template_id should not be nil") if template_id == nil
       endpoint = "#{@url_base}/templates/#{template_id}"
-      RestClient.delete(endpoint)
+      resource = RestClient::Resource.new(endpoint, @username, @password)
+      resource.delete
     end
 
   end

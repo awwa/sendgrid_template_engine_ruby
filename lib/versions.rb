@@ -14,7 +14,8 @@ module SendgridTemplateEngine
       raise ArgumentError.new("template_id should not be nil") if template_id == nil
       raise ArgumentError.new("version_id should not be nil") if version_id == nil
       endpoint = "#{@url_base}/templates/#{template_id}/versions/#{version_id}"
-      body = RestClient.get(endpoint).body
+      resource = RestClient::Resource.new(endpoint, @username, @password)
+      body = resource.get.body
       Version.create(JSON.parse(body))
     end
 
@@ -22,7 +23,8 @@ module SendgridTemplateEngine
       raise ArgumentError.new("template_id should not be nil") if template_id == nil
       raise ArgumentError.new("version should not be nil") if version == nil
       endpoint = "#{@url_base}/templates/#{template_id}/versions"
-      body = RestClient.post(endpoint, version.to_hash.to_json, :content_type => :json).body
+      resource = RestClient::Resource.new(endpoint, @username, @password)
+      body = resource.post(version.to_hash.to_json, :content_type => :json).body
       Version.create(JSON.parse(body))
     end
 
@@ -30,7 +32,8 @@ module SendgridTemplateEngine
       raise ArgumentError.new("template_id should not be nil") if template_id == nil
       raise ArgumentError.new("version_id should not be nil") if version_id == nil
       endpoint = "#{@url_base}/templates/#{template_id}/versions/#{version_id}/activate"
-      body = RestClient.post(endpoint, :content_type => :json).body
+      resource = RestClient::Resource.new(endpoint, @username, @password)
+      body = resource.post(:content_type => :json).body
       Version.create(JSON.parse(body))
     end
 
@@ -39,7 +42,8 @@ module SendgridTemplateEngine
       raise ArgumentError.new("version_id should not be nil") if version_id == nil
       raise ArgumentError.new("version should not be nil") if version == nil
       endpoint = "#{@url_base}/templates/#{template_id}/versions/#{version_id}"
-      body = RestClient.patch(endpoint, version.to_hash.to_json, :content_type => :json).body
+      resource = RestClient::Resource.new(endpoint, @username, @password)
+      body = resource.patch(version.to_hash.to_json, :content_type => :json).body
       Version.create(JSON.parse(body))
     end
 
@@ -47,7 +51,8 @@ module SendgridTemplateEngine
       raise ArgumentError.new("template_id should not be nil") if template_id == nil
       raise ArgumentError.new("version_id should not be nil") if version_id == nil
       endpoint = "#{@url_base}/templates/#{template_id}/versions/#{version_id}"
-      RestClient.delete(endpoint)
+      resource = RestClient::Resource.new(endpoint, @username, @password)
+      resource.delete
     end
 
   end

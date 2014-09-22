@@ -8,7 +8,7 @@ require "./lib/sendgrid_template_engine/version"
 class SendgridTemplateEngineTest < Test::Unit::TestCase
 
   def test_version
-    assert_equal("0.0.1", SendgridTemplateEngine::VERSION)
+    assert_equal("0.0.2", SendgridTemplateEngine::VERSION)
   end
 
 end

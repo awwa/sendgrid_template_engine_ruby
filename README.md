@@ -1,5 +1,9 @@
 # SendgridTemplateEngine
 
+>
+> ** This library has been deprecated. Please use [sendgrid4r](https://github.com/awwa/sendgrid4r) instead.**
+>
+
 This gem allows you to quickly and easily access to SendGrid Template Engine using Ruby.
 See [api reference](https://sendgrid.com/docs/API_Reference/Template_Engine_API/index.html) for more detail
 

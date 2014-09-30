@@ -91,30 +91,35 @@ class TemplatesTest < Test::Unit::TestCase
   end
 
   def test_template
-    templates = SendgridTemplateEngine::Templates.new(@username, @password)
-    # celan up test env
-    resp_temps = templates.get_all()
-    assert_equal(true, resp_temps.length >= 0)
-    resp_temps.each{|temp|
-      if temp.name == @template_name then
-        templates.delete(temp.id)
-      end
-    }
-    # post a template
-    new_template = templates.post(@template_name)
-    assert_equal(@template_name, new_template.name)
-    # pach the template
-    templates.patch(new_template.id, "edit_template")
-    # get the template
-    edit_template = templates.get(new_template.id)
-    assert_equal(new_template.id, edit_template.id)
-    assert_equal("edit_template", edit_template.name)
-    assert_equal(new_template.versions, edit_template.versions)
-    # delete the template
-    templates.delete(edit_template.id)
-    assert_raise(RestClient::ResourceNotFound) {
-      templates.get(edit_template.id)
-    }
+    begin
+      templates = SendgridTemplateEngine::Templates.new(@username, @password)
+      # celan up test env
+      resp_temps = templates.get_all()
+      assert_equal(true, resp_temps.length >= 0)
+      resp_temps.each{|temp|
+        if temp.name == @template_name then
+          templates.delete(temp.id)
+        end
+      }
+      # post a template
+      new_template = templates.post(@template_name)
+      assert_equal(@template_name, new_template.name)
+      # pach the template
+      templates.patch(new_template.id, "edit_template")
+      # get the template
+      edit_template = templates.get(new_template.id)
+      assert_equal(new_template.id, edit_template.id)
+      assert_equal("edit_template", edit_template.name)
+      assert_equal(new_template.versions, edit_template.versions)
+      # delete the template
+      templates.delete(edit_template.id)
+      assert_raise(RestClient::ResourceNotFound) {
+        templates.get(edit_template.id)
+      }
+    rescue => e
+      puts e.inspect
+      raise e
+    end
   end
 
 end
